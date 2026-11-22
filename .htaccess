@@ -14,11 +14,17 @@ DirectoryIndex index.html
     Deny from all
 </FilesMatch>
 
-# 4. Strictly block access to any text, markdown, log or backup files
-<FilesMatch "\.(txt|log|md|bak|backup|old|sql|env|ini|conf)$">
+# 4. Strictly block access to activity logs, text, markdown, or backup files
+<FilesMatch "(activity_logs\.json|\.json|\.txt|\.log|\.md|\.bak|\.backup|\.old|\.sql|\.env|\.ini|\.conf)$">
     Order allow,deny
     Deny from all
 </FilesMatch>
+
+# Allow Web App Manifest for PWA installation
+<Files "manifest.webmanifest">
+    Order allow,deny
+    Allow from all
+</Files>
 
 # 5. Security Headers
 <IfModule mod_headers.c>
