@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wa-backup-cache-v3';
+const CACHE_NAME = 'wa-backup-cache-v4';
 const STATIC_ASSETS = [
   './',
   './index.html',
