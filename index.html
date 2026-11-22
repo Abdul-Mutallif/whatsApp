@@ -261,38 +261,31 @@
     font-size: 11px; padding: 1px 7px; border-radius: 10px; font-weight: 600;
   }
 
-  /* ─── QUICK FILTER CHIPS ─── */
-  .quick-chips-bar {
-    background: var(--wa-header);
-    padding: 6px 12px 8px;
-    display: flex; gap: 6px; align-items: center;
-    border-bottom: 1px solid var(--wa-border);
-    flex-shrink: 0;
+  /* ─── CUTE & LARGE EMOJIS ─── */
+  .wa-emoji {
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+    font-size: 1.18em;
+    vertical-align: -0.14em;
+    display: inline-block;
   }
-  .chip-btn {
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: var(--wa-header-text);
-    padding: 4px 12px; border-radius: 16px;
-    font-size: 12px; font-weight: 500;
-    cursor: pointer; transition: all 0.15s;
+  .emoji-only-1 {
+    font-size: 42px !important;
+    line-height: 1.25 !important;
+    display: inline-block;
+    padding: 3px 2px;
   }
-  .chip-btn.active {
-    background: var(--wa-accent); color: #fff; border-color: var(--wa-accent);
+  .emoji-only-2 {
+    font-size: 32px !important;
+    line-height: 1.25 !important;
+    display: inline-block;
+    padding: 2px 2px;
   }
-  .chip-btn-stat {
-    margin-left: auto;
-    font-size: 11px;
-    color: var(--wa-text-muted);
+  .emoji-only-3 {
+    font-size: 26px !important;
+    line-height: 1.25 !important;
+    display: inline-block;
+    padding: 2px 1px;
   }
-  [data-theme="light"] .chip-btn {
-    background: rgba(255,255,255,0.2);
-    border-color: rgba(255,255,255,0.3);
-  }
-  [data-theme="light"] .chip-btn.active {
-    background: #ffffff; color: var(--wa-accent); border-color: #ffffff;
-  }
-  [data-theme="light"] .chip-btn-stat { color: rgba(255,255,255,0.85); }
 
   /* ─── SEARCH DRAWER ─── */
   .search-drawer {
@@ -316,7 +309,7 @@
   /* ─── FLOATING SCROLL DATE PILL (DISAPPEARS AFTER 1 SECOND) ─── */
   .floating-scroll-date {
     position: absolute;
-    top: 108px;
+    top: 68px;
     left: 50%;
     transform: translateX(-50%) translateY(-6px);
     background: var(--wa-header);
@@ -608,21 +601,6 @@
   .m-stat-tile .num { font-size: 18px; font-weight: 600; color: var(--wa-accent); }
   .m-stat-tile .lbl { font-size: 10.5px; color: var(--wa-text-muted); margin-top: 2px; }
 
-  /* Analytics in sheet */
-  .chart-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 11.5px; }
-  .chart-lbl { width: 50px; color: var(--wa-text-muted); text-align: right; }
-  .chart-bar-bg { flex: 1; background: var(--wa-header); height: 14px; border-radius: 3px; overflow: hidden; }
-  .chart-bar-fill { height: 100%; background: var(--wa-accent); border-radius: 3px; }
-  .chart-val { width: 34px; color: var(--wa-text); font-weight: 500; font-size: 10.5px; }
-
-  .emoji-pill-grid { display: flex; flex-wrap: wrap; gap: 6px; }
-  .emoji-pill {
-    background: var(--wa-header); border: 1px solid var(--wa-border);
-    border-radius: 16px; padding: 4px 9px; font-size: 13px;
-    display: inline-flex; align-items: center; gap: 5px;
-  }
-  .emoji-count { font-size: 11px; color: var(--wa-text-muted); }
-
   /* Starred messages */
   .starred-item {
     background: var(--wa-card-bg); border: 1px solid var(--wa-border);
@@ -690,7 +668,7 @@
         </button>
         <div class="mobile-avatar">P</div>
         <div class="mobile-user-info">
-          <h2>P (Prachi)</h2>
+          <h2>Pagluu</h2>
           <p>online</p>
         </div>
       </div>
@@ -709,10 +687,6 @@
 
     <!-- 3-Dots Dropdown Menu -->
     <div class="menu-dropdown" id="menu-dropdown">
-      <button class="menu-item" onclick="openBottomSheet('analytics')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
-        <span>Chat Analytics</span>
-      </button>
       <button class="menu-item" onclick="openBottomSheet('starred')">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
         <span>Starred Messages</span>
@@ -734,14 +708,6 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         <span>Install App</span>
       </button>
-    </div>
-
-    <!-- Quick Filter Chips: All / You / Prachi -->
-    <div class="quick-chips-bar">
-      <button class="chip-btn active" id="chip-all" onclick="setSenderFilter('all')">All Messages</button>
-      <button class="chip-btn" id="chip-me" onclick="setSenderFilter('me')">You</button>
-      <button class="chip-btn" id="chip-p" onclick="setSenderFilter('p')">Prachi</button>
-      <span class="chip-btn-stat" id="chip-stat"></span>
     </div>
 
     <!-- In-Chat Search Drawer -->
@@ -804,7 +770,7 @@
         <div class="m-card" style="display:flex;align-items:center;gap:14px;">
           <div class="mobile-avatar" style="width:48px;height:48px;font-size:20px;">P</div>
           <div>
-            <div style="font-size:16px;font-weight:600;color:var(--wa-text);">P (Prachi)</div>
+            <div style="font-size:16px;font-weight:600;color:var(--wa-text);">Pagluu</div>
             <div style="font-size:13px;color:var(--wa-text-muted);" id="info-daterange">Archive</div>
           </div>
         </div>
@@ -813,8 +779,8 @@
           <div class="m-stat-grid">
             <div class="m-stat-tile"><div class="num" id="info-total">0</div><div class="lbl">Total Messages</div></div>
             <div class="m-stat-tile"><div class="num" id="info-days">0</div><div class="lbl">Active Days</div></div>
-            <div class="m-stat-tile"><div class="num" id="info-abdul">0</div><div class="lbl">Abdul (You)</div></div>
-            <div class="m-stat-tile"><div class="num" id="info-p">0</div><div class="lbl">Prachi</div></div>
+            <div class="m-stat-tile"><div class="num" id="info-p">0</div><div class="lbl">You (P)</div></div>
+            <div class="m-stat-tile"><div class="num" id="info-abdul">0</div><div class="lbl">Pagluu</div></div>
           </div>
         </div>
       </div>
@@ -835,39 +801,7 @@
       </div>
     </div>
 
-    <!-- 3. Advanced Analytics Sheet -->
-    <div class="bottom-sheet" id="sheet-analytics">
-      <div class="sheet-handle-bar" onclick="closeBottomSheet()"><div class="sheet-handle"></div></div>
-      <div class="sheet-header">
-        <h3>📊 Chat Insights & Analytics</h3>
-        <button class="sheet-close-btn" onclick="closeBottomSheet()">✕</button>
-      </div>
-      <div class="sheet-content">
-        <div class="m-card">
-          <h4>Highlights</h4>
-          <div style="font-size:13px;line-height:1.75;color:var(--wa-text);">
-            <div>🏆 Longest Streak: <strong id="m-streak" style="color:var(--wa-accent)">0</strong> consecutive days</div>
-            <div>⚡ Busiest Date: <strong id="m-busiest" style="color:var(--wa-accent)">--</strong></div>
-            <div>💬 Total Words: <strong id="m-words" style="color:var(--wa-accent)">0</strong></div>
-            <div>📸 Photos/Media: <strong id="m-media" style="color:var(--wa-accent)">0</strong></div>
-          </div>
-        </div>
-        <div class="m-card">
-          <h4>Most Used Emojis</h4>
-          <div class="emoji-pill-grid" id="m-top-emojis"></div>
-        </div>
-        <div class="m-card">
-          <h4>Active Hours of Day</h4>
-          <div id="m-hourly-chart"></div>
-        </div>
-        <div class="m-card">
-          <h4>Active Days of Week</h4>
-          <div id="m-weekday-chart"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 4. Jump to Date Sheet -->
+    <!-- 3. Jump to Date Sheet -->
     <div class="bottom-sheet" id="sheet-date">
       <div class="sheet-handle-bar" onclick="closeBottomSheet()"><div class="sheet-handle"></div></div>
       <div class="sheet-header">
@@ -940,7 +874,7 @@ function inflateData(b64) {
 // ─── DATA & PARSING ───
 let messages = [];
 let countAbdul = 0, countP = 0;
-const ME = 'Abdul Mutallif';
+const ME = 'P';
 
 function parseRaw(text) {
   messages = [];
@@ -957,7 +891,7 @@ function parseRaw(text) {
     if (m) {
       const s = m[3].trim();
       messages.push({ id: messages.length, d: m[1].trim(), t: m[2].trim(), s, txt: m[4], sys: false });
-      if (s === ME) countAbdul++; else countP++;
+      if (s === 'Abdul Mutallif') countAbdul++; else countP++;
     } else {
       const s2 = l.match(sysRe);
       if (s2) {
@@ -982,7 +916,6 @@ function openBottomSheet(name) {
   if (sheet) sheet.classList.add('active');
 
   if (name === 'starred') renderStarredSheet();
-  if (name === 'analytics') calculateAndRenderAnalytics();
 }
 
 function closeBottomSheet() {
@@ -1135,7 +1068,7 @@ function renderStarredSheet() {
       jumpToTarget(id);
     };
 
-    const sender = (msg.s === ME) ? 'You' : 'Prachi';
+    const sender = (msg.s === ME) ? 'You' : 'Pagluu';
     item.innerHTML = `
       <div class="starred-hdr">
         <span>${sender}</span>
@@ -1150,16 +1083,14 @@ function renderStarredSheet() {
   });
 }
 
-// ─── SENDER FILTER ───
-function setSenderFilter(mode) {
-  const stream = document.getElementById('chat-stream');
-  document.getElementById('chip-all').classList.toggle('active', mode === 'all');
-  document.getElementById('chip-me').classList.toggle('active', mode === 'me');
-  document.getElementById('chip-p').classList.toggle('active', mode === 'p');
-
-  stream.classList.remove('filter-only-me', 'filter-only-p');
-  if (mode === 'me') stream.classList.add('filter-only-me');
-  if (mode === 'p') stream.classList.add('filter-only-p');
+function getEmojiOnlyCount(str) {
+  if (!str) return 0;
+  const clean = str.replace(/[\uFE00-\uFE0F\u200D\uD83C\uDFFB-\uDFFF\s]/g, '');
+  if (!clean) return 0;
+  const nonEmoji = clean.replace(/\p{Extended_Pictographic}/gu, '');
+  if (nonEmoji.length > 0) return 0;
+  const matches = str.match(/\p{Extended_Pictographic}/gu);
+  return matches ? matches.length : 0;
 }
 
 // ─── FAST WINDOWED VIRTUAL STREAM ───
@@ -1199,13 +1130,17 @@ function buildMessageRow(i, prevMsg) {
   let tailSvg = isTail ? (isOut ? TAIL_OUT_SVG : TAIL_IN_SVG) : '';
   let contentHtml = '';
   const rawTxt = msg.txt.trim();
+  const emojiCount = getEmojiOnlyCount(rawTxt);
 
   if (/^you deleted this message$/i.test(rawTxt) || /^this message was deleted$/i.test(rawTxt)) {
     contentHtml = `<span class="msg-deleted"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8 0-1.85.63-3.55 1.69-4.9L16.9 18.31C15.55 19.37 13.85 20 12 20zm6.31-3.1L7.1 5.69C8.45 4.63 10.15 4 12 4c4.42 0 8 3.58 8 8 0 1.85-.63 3.55-1.69 4.9z"/></svg> <span>This message was deleted</span></span>`;
   } else if (/^<media omitted>$/i.test(rawTxt)) {
     contentHtml = `<span class="media-badge"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg> <span>Photo</span></span>`;
+  } else if (emojiCount >= 1 && emojiCount <= 3) {
+    contentHtml = `<span class="emoji-only-${emojiCount}">${esc(rawTxt)}</span>`;
   } else {
     contentHtml = linkify(formatMarkdown(esc(msg.txt)));
+    contentHtml = contentHtml.replace(/(\p{Extended_Pictographic}+)/gu, '<span class="wa-emoji">$1</span>');
   }
 
   const tickHtml = isOut ? BLUE_TICK_SVG : '';
@@ -1521,128 +1456,6 @@ function searchPrev() {
   focusSearchMatch();
 }
 
-// ─── FAST ANALYTICS CALCULATION ───
-let analyticsComputed = false;
-
-function calculateAndRenderAnalytics() {
-  if (analyticsComputed) return;
-  analyticsComputed = true;
-
-  let totalWords = 0, totalMedia = 0;
-  const hours = new Array(24).fill(0);
-  const weekdays = new Array(7).fill(0);
-  const weekdayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const emojiCounts = {};
-  const datesSet = new Set();
-  const dateCounts = {};
-  const emojiRegex = /\p{Extended_Pictographic}/gu;
-
-  for (let i = 0; i < messages.length; i++) {
-    const m = messages[i];
-    if (m.sys) continue;
-
-    datesSet.add(m.d);
-    dateCounts[m.d] = (dateCounts[m.d] || 0) + 1;
-
-    const str = m.txt;
-    let words = 0;
-    for (let c = 0; c < str.length; c++) {
-      if (str.charCodeAt(c) <= 32 && (c > 0 && str.charCodeAt(c-1) > 32)) words++;
-    }
-    totalWords += (words + 1);
-
-    if (str.includes('omitted')) totalMedia++;
-
-    const matches = str.match(emojiRegex);
-    if (matches) {
-      for (let j = 0; j < matches.length; j++) {
-        const em = matches[j];
-        emojiCounts[em] = (emojiCounts[em] || 0) + 1;
-      }
-    }
-
-    const timeMatch = m.t.match(/(\d{1,2})[:.](\d{2})\s*([ap]m)?/i);
-    if (timeMatch) {
-      let h = parseInt(timeMatch[1]);
-      const ampm = timeMatch[3]?.toLowerCase();
-      if (ampm === 'pm' && h < 12) h += 12;
-      if (ampm === 'am' && h === 12) h = 0;
-      if (h >= 0 && h < 24) hours[h]++;
-    }
-
-    const p = m.d.split(/[\/\-\.]/);
-    if (p.length === 3) {
-      let d = parseInt(p[0]), mo = parseInt(p[1]) - 1, y = parseInt(p[2]);
-      if (y < 100) y += 2000;
-      const dt = new Date(y, mo, d);
-      if (!isNaN(dt)) weekdays[dt.getDay()]++;
-    }
-  }
-
-  let maxStreak = 0, currentStreak = 0, prevTime = null;
-  const sortedDates = Array.from(datesSet).map(ds => {
-    const p = ds.split(/[\/\-\.]/);
-    let d = parseInt(p[0]), mo = parseInt(p[1]) - 1, y = parseInt(p[2]);
-    if (y < 100) y += 2000;
-    return new Date(y, mo, d).getTime();
-  }).sort((a,b) => a - b);
-
-  for (let t of sortedDates) {
-    if (!prevTime) {
-      currentStreak = 1;
-    } else {
-      const diffDays = Math.round((t - prevTime) / (1000 * 60 * 60 * 24));
-      if (diffDays === 1) currentStreak++;
-      else if (diffDays > 1) currentStreak = 1;
-    }
-    if (currentStreak > maxStreak) maxStreak = currentStreak;
-    prevTime = t;
-  }
-
-  let maxDate = '--', maxDateCount = 0;
-  for (const [d, count] of Object.entries(dateCounts)) {
-    if (count > maxDateCount) { maxDateCount = count; maxDate = d; }
-  }
-
-  document.getElementById('m-streak').textContent = maxStreak + ' days';
-  document.getElementById('m-busiest').textContent = formatDisplayDate(maxDate) + ' (' + maxDateCount + ' msgs)';
-  document.getElementById('m-words').textContent = totalWords.toLocaleString();
-  document.getElementById('m-media').textContent = totalMedia.toLocaleString();
-
-  const topEmojis = Object.entries(emojiCounts).sort((a,b) => b[1] - a[1]).slice(0, 14);
-  document.getElementById('m-top-emojis').innerHTML = topEmojis.map(([em, cnt]) => `
-    <div class="emoji-pill"><span>${em}</span><span class="emoji-count">${cnt}</span></div>
-  `).join('');
-
-  const maxHour = Math.max(...hours, 1);
-  let hHtml = '';
-  for (let i = 0; i < 24; i += 2) {
-    const count = hours[i] + (hours[i+1] || 0);
-    const pct = Math.round((count / (maxHour * 2)) * 100);
-    const label = (i === 0 ? '12 AM' : i < 12 ? i + ' AM' : i === 12 ? '12 PM' : (i-12) + ' PM');
-    hHtml += `
-      <div class="chart-bar-row">
-        <span class="chart-lbl">${label}</span>
-        <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:${pct}%"></div></div>
-        <span class="chart-val">${count}</span>
-      </div>`;
-  }
-  document.getElementById('m-hourly-chart').innerHTML = hHtml;
-
-  const maxDay = Math.max(...weekdays, 1);
-  let dHtml = '';
-  weekdays.forEach((count, i) => {
-    const pct = Math.round((count / maxDay) * 100);
-    dHtml += `
-      <div class="chart-bar-row">
-        <span class="chart-lbl">${weekdayNames[i]}</span>
-        <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:${pct}%"></div></div>
-        <span class="chart-val">${count}</span>
-      </div>`;
-  });
-  document.getElementById('m-weekday-chart').innerHTML = dHtml;
-}
-
 // ─── UTILITIES ───
 function esc(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
 function linkify(txt) { return txt.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>'); }
@@ -1685,10 +1498,9 @@ async function initChat() {
   const dates = new Set(messages.map(m => m.d));
   document.getElementById('info-total').textContent = total.toLocaleString();
   document.getElementById('info-days').textContent = dates.size;
-  document.getElementById('info-abdul').textContent = countAbdul.toLocaleString();
   document.getElementById('info-p').textContent = countP.toLocaleString();
+  document.getElementById('info-abdul').textContent = countAbdul.toLocaleString();
   document.getElementById('info-daterange').textContent = (messages[0]?.d || '') + ' — ' + (messages[messages.length-1]?.d || '');
-  document.getElementById('chip-stat').textContent = total.toLocaleString() + ' msgs';
   updateStarredBadges();
 
   // Make sure floating pill is hidden on load
