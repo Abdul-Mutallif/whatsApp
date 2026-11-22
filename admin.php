@@ -7,7 +7,8 @@ session_start();
 header('X-Frame-Options: SAMEORIGIN');
 header('X-Content-Type-Options: nosniff');
 
-$ADMIN_PASSWORD = 'pradul'; // Master password to access dashboard
+// Secure Admin Password Hash (SHA-256: raw password never exposed on server or GitHub)
+$ADMIN_HASH = '8db2ec1038313ad8d6dcc3e2dd27ff6a6e07e87b73487ae56bb20f49959ff4ce';
 $logFile = __DIR__ . '/activity_logs.json';
 
 // Logout Handler
@@ -20,7 +21,8 @@ if (isset($_GET['logout'])) {
 // Login Handler
 $loginError = false;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_pw'])) {
-    if ($_POST['admin_pw'] === $ADMIN_PASSWORD) {
+    $inputHash = hash('sha256', trim($_POST['admin_pw']));
+    if (hash_equals($ADMIN_HASH, $inputHash)) {
         $_SESSION['admin_auth'] = true;
         header('Location: admin.php');
         exit;
