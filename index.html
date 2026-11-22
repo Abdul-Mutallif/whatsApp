@@ -307,15 +307,15 @@
   /* ─── FLOATING SCROLL DATE PILL (DISAPPEARS AFTER 1 SECOND) ─── */
   .floating-scroll-date {
     position: absolute;
-    top: 102px;
+    top: 108px;
     left: 50%;
     transform: translateX(-50%) translateY(-6px);
     background: var(--wa-header);
     color: var(--wa-text-muted);
-    font-size: 11px;
-    padding: 4px 12px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    font-size: 11.5px;
+    padding: 5px 14px;
+    border-radius: 7.5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.35);
     z-index: 25;
     pointer-events: none;
     opacity: 0;
@@ -1195,13 +1195,34 @@ function updateScrollButtons() {
 function triggerFloatingScrollDate() {
   const stream = document.getElementById('chat-stream');
   const pill = document.getElementById('floating-scroll-date');
-  const streamTop = stream.getBoundingClientRect().top;
-  const rows = stream.querySelectorAll('.msg-row');
+  if (!stream || !pill) return;
 
+  // If at very top (e.g. scrollTop <= 40), inline date separator is already in view, never show floating pill!
+  if (stream.scrollTop <= 40) {
+    pill.classList.remove('visible');
+    clearTimeout(floatDateHideTimer);
+    return;
+  }
+
+  const streamRect = stream.getBoundingClientRect();
+
+  // If an inline date separator is visible in top 160px, suppress floating pill
+  const seps = stream.querySelectorAll('.chat-date-sep');
+  for (let s of seps) {
+    const sRect = s.getBoundingClientRect();
+    if (sRect.bottom > streamRect.top && sRect.top < streamRect.top + 160) {
+      pill.classList.remove('visible');
+      clearTimeout(floatDateHideTimer);
+      return;
+    }
+  }
+
+  // Find date of first visible message in viewport
+  const rows = stream.querySelectorAll('.msg-row');
   let curDate = '';
   for (let r of rows) {
     const rect = r.getBoundingClientRect();
-    if (rect.bottom > streamTop + 10) {
+    if (rect.bottom > streamRect.top + 15) {
       const idx = parseInt(r.dataset.idx);
       if (!isNaN(idx) && messages[idx]) {
         curDate = formatDisplayDate(messages[idx].d);
@@ -1222,7 +1243,10 @@ function triggerFloatingScrollDate() {
 
 function jumpToStart() {
   renderSlice(0, Math.min(50, messages.length));
-  document.getElementById('chat-stream').scrollTop = 0;
+  const stream = document.getElementById('chat-stream');
+  stream.scrollTop = 0;
+  const pill = document.getElementById('floating-scroll-date');
+  if (pill) { pill.classList.remove('visible'); clearTimeout(floatDateHideTimer); }
 }
 
 function jumpToLatest() {
@@ -1230,12 +1254,16 @@ function jumpToLatest() {
   renderSlice(start, messages.length);
   const stream = document.getElementById('chat-stream');
   stream.scrollTop = stream.scrollHeight;
+  const pill = document.getElementById('floating-scroll-date');
+  if (pill) { pill.classList.remove('visible'); clearTimeout(floatDateHideTimer); }
 }
 
 function jumpToTarget(targetId) {
   const from = Math.max(0, targetId - 20);
   const to = Math.min(messages.length, targetId + 35);
   renderSlice(from, to, targetId);
+  const pill = document.getElementById('floating-scroll-date');
+  if (pill) { pill.classList.remove('visible'); clearTimeout(floatDateHideTimer); }
 }
 
 function onJumpDate() {
@@ -1488,6 +1516,9 @@ async function initChat() {
   document.getElementById('info-daterange').textContent = (messages[0]?.d || '') + ' — ' + (messages[messages.length-1]?.d || '');
   document.getElementById('chip-stat').textContent = total.toLocaleString() + ' msgs';
   updateStarredBadges();
+
+  // Make sure floating pill is hidden on load
+  document.getElementById('floating-scroll-date').classList.remove('visible');
 
   // Initial load: first 50 messages from start
   renderSlice(0, Math.min(50, messages.length));
