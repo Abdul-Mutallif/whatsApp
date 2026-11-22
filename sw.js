@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wa-backup-cache-v2';
+const CACHE_NAME = 'wa-backup-cache-v3';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -9,8 +9,9 @@ const STATIC_ASSETS = [
 ];
 
 self.addEventListener('install', (e) => {
+  self.skipWaiting();
   e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
   );
 });
 
@@ -26,16 +27,31 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
+  
+  // Network-First for HTML pages so changes update immediately
+  if (e.request.mode === 'navigate' || e.request.headers.get('accept')?.includes('text/html')) {
+    e.respondWith(
+      fetch(e.request).then((response) => {
+        if (response && response.status === 200) {
+          const toCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, toCache));
+        }
+        return response;
+      }).catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
+
+  // Cache-first for icons and manifest
   e.respondWith(
     caches.match(e.request).then((cached) => {
       return cached || fetch(e.request).then((response) => {
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
+        if (response && response.status === 200) {
+          const toCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, toCache));
         }
-        const toCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(e.request, toCache));
         return response;
-      }).catch(() => caches.match('./index.html'));
+      });
     })
   );
 });
