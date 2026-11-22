@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>WhatsApp</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1f2c34">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WhatsApp">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <style>
   /* ══════════ THEME PALETTES ══════════ */
   :root[data-theme="dark"] {
@@ -379,6 +388,14 @@
     font-size: 14.2px; line-height: 18.5px;
     word-break: break-word;
     box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    transition: transform 0.12s ease, filter 0.12s ease;
+  }
+  .bubble.holding {
+    transform: scale(0.965);
+    filter: brightness(0.9);
   }
 
   .msg-row.out .bubble {
@@ -399,7 +416,7 @@
   .tail-svg.tail-out { right: -8px; fill: var(--tail-out-color); }
 
   /* Message Text & Spacer */
-  .msg-text { white-space: pre-wrap; user-select: text; }
+  .msg-text { white-space: pre-wrap; user-select: text; -webkit-user-select: text; }
   .msg-text::after { content: ''; display: inline-block; width: 60px; height: 0; }
   .msg-row.in .msg-text::after { width: 44px; }
   .msg-text a { color: #53bdeb; text-decoration: none; }
@@ -412,14 +429,24 @@
     user-select: none;
   }
 
-  /* Star button */
-  .star-btn {
-    opacity: 0.35; background: none; border: none; color: var(--wa-time);
-    cursor: pointer; padding: 0 2px; display: inline-flex;
-    align-items: center; font-size: 12px;
+  /* Star badge in metadata: ONLY shown when starred via hold! */
+  .star-badge {
+    display: none;
+    color: #ffd60a;
+    font-size: 11.5px;
+    line-height: 1;
+    margin-right: 1px;
+    vertical-align: middle;
   }
-  .star-btn.starred { opacity: 1 !important; color: #ffd60a !important; }
-  .msg-row:hover .star-btn { opacity: 0.9; }
+  .msg-row.starred .star-badge {
+    display: inline-block;
+    animation: starPop 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  @keyframes starPop {
+    0% { transform: scale(0.3); opacity: 0; }
+    70% { transform: scale(1.3); }
+    100% { transform: scale(1); opacity: 1; }
+  }
 
   /* WhatsApp Double Blue Tick */
   .tick-icon { display: inline-flex; align-items: center; color: var(--wa-tick); vertical-align: middle; }
@@ -430,6 +457,40 @@
 
   .bubble.highlight { outline: 2px solid var(--wa-accent); outline-offset: 2px; }
   .msg-text mark { background: #ffd60a; color: #000; border-radius: 2px; padding: 0 1px; }
+
+  /* Floating Toast Alert */
+  .wa-toast {
+    position: absolute;
+    bottom: 68px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(30, 42, 49, 0.95);
+    color: #e9edef;
+    padding: 9px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.45);
+    z-index: 95;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.22s ease, transform 0.22s ease;
+    white-space: nowrap;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .wa-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  [data-theme="light"] .wa-toast {
+    background: rgba(40, 50, 60, 0.92);
+    color: #ffffff;
+  }
+
+  .starred-del-btn {
+    background: none; border: none; color: #ffd60a; font-size: 15px; cursor: pointer; padding: 2px 4px;
+  }
+  .starred-del-btn:hover { color: var(--wa-text-muted); }
 
   /* ─── MOBILE BOTTOM INPUT BAR ─── */
   .mobile-input-bar {
@@ -669,6 +730,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         <span>Change Theme</span>
       </button>
+      <button class="menu-item" id="menu-btn-install" onclick="installPWA()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>Install App</span>
+      </button>
     </div>
 
     <!-- Quick Filter Chips: All / You / Prachi -->
@@ -694,6 +759,9 @@
 
     <!-- Chat Messages Stream -->
     <div class="chat-stream" id="chat-stream" onclick="closeMenu()"></div>
+
+    <!-- WhatsApp Floating Action Toast -->
+    <div class="wa-toast" id="wa-toast"></div>
 
     <!-- Floating Jump Buttons -->
     <button class="float-jump-btn" id="btn-jump-top" onclick="jumpToStart()" title="Jump to start">
@@ -761,7 +829,7 @@
       </div>
       <div class="sheet-content">
         <div id="m-starred-empty" style="text-align:center;color:var(--wa-text-muted);padding:30px 10px;font-size:13.5px;">
-          No starred messages yet.<br>Tap the ★ star on any message to pin it here!
+          No starred messages yet.<br>Press and hold any message to star it here!
         </div>
         <div id="m-starred-list"></div>
       </div>
@@ -922,19 +990,122 @@ function closeBottomSheet() {
   document.querySelectorAll('.bottom-sheet').forEach(s => s.classList.remove('active'));
 }
 
-// ─── STARRED MESSAGES ───
+// ─── STARRED MESSAGES & HOLD TO STAR ───
 let starredIds = new Set(JSON.parse(localStorage.getItem('wa_starred_' + PASSWORD) || '[]'));
+let toastTimer = null;
+let holdTimer = null;
+let holdTargetRow = null;
+let touchStartX = 0;
+let touchStartY = 0;
 
-function toggleStar(msgId, btn) {
-  if (starredIds.has(msgId)) {
-    starredIds.delete(msgId);
-    if (btn) btn.classList.remove('starred');
-  } else {
+function showToast(text) {
+  const toast = document.getElementById('wa-toast');
+  if (!toast) return;
+  toast.textContent = text;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 1600);
+}
+
+function toggleStar(msgId, row) {
+  const willBeStarred = !starredIds.has(msgId);
+  if (willBeStarred) {
     starredIds.add(msgId);
-    if (btn) btn.classList.add('starred');
+  } else {
+    starredIds.delete(msgId);
   }
   localStorage.setItem('wa_starred_' + PASSWORD, JSON.stringify(Array.from(starredIds)));
   updateStarredBadges();
+
+  if (row) {
+    row.classList.toggle('starred', willBeStarred);
+  } else {
+    const r = document.querySelector(`.msg-row[data-idx="${msgId}"]`);
+    if (r) r.classList.toggle('starred', willBeStarred);
+  }
+  return willBeStarred;
+}
+
+function triggerHoldStar(msgId, row) {
+  if (navigator.vibrate) {
+    try { navigator.vibrate(45); } catch(e) {}
+  }
+  const isStarred = toggleStar(msgId, row);
+  showToast(isStarred ? '⭐ Message starred' : 'Message unstarred');
+}
+
+function setupHoldListener(stream) {
+  function startHold(e, row) {
+    if (e.target.closest('a')) return;
+    holdTargetRow = row;
+    const pt = e.touches ? e.touches[0] : e;
+    touchStartX = pt.clientX;
+    touchStartY = pt.clientY;
+
+    const bubble = row.querySelector('.bubble');
+    if (bubble) bubble.classList.add('holding');
+
+    clearTimeout(holdTimer);
+    holdTimer = setTimeout(() => {
+      if (bubble) bubble.classList.remove('holding');
+      const msgId = parseInt(row.dataset.idx);
+      if (!isNaN(msgId)) {
+        triggerHoldStar(msgId, row);
+      }
+      holdTargetRow = null;
+    }, 450);
+  }
+
+  function cancelHold() {
+    clearTimeout(holdTimer);
+    if (holdTargetRow) {
+      const bubble = holdTargetRow.querySelector('.bubble');
+      if (bubble) bubble.classList.remove('holding');
+      holdTargetRow = null;
+    }
+  }
+
+  function moveHold(e) {
+    if (!holdTargetRow) return;
+    const pt = e.touches ? e.touches[0] : e;
+    const dx = Math.abs(pt.clientX - touchStartX);
+    const dy = Math.abs(pt.clientY - touchStartY);
+    if (dx > 8 || dy > 8) {
+      cancelHold();
+    }
+  }
+
+  stream.addEventListener('touchstart', (e) => {
+    const row = e.target.closest('.msg-row');
+    if (row) startHold(e, row);
+  }, { passive: true });
+
+  stream.addEventListener('touchmove', moveHold, { passive: true });
+  stream.addEventListener('touchend', cancelHold, { passive: true });
+  stream.addEventListener('touchcancel', cancelHold, { passive: true });
+
+  stream.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    const row = e.target.closest('.msg-row');
+    if (row) startHold(e, row);
+  });
+  stream.addEventListener('mousemove', moveHold);
+  stream.addEventListener('mouseup', cancelHold);
+  stream.addEventListener('mouseleave', cancelHold);
+
+  stream.addEventListener('contextmenu', (e) => {
+    const row = e.target.closest('.msg-row');
+    if (row) {
+      e.preventDefault();
+      cancelHold();
+      const msgId = parseInt(row.dataset.idx);
+      if (!isNaN(msgId)) {
+        triggerHoldStar(msgId, row);
+      }
+    }
+  });
 }
 
 function updateStarredBadges() {
@@ -968,7 +1139,10 @@ function renderStarredSheet() {
     item.innerHTML = `
       <div class="starred-hdr">
         <span>${sender}</span>
-        <span class="starred-date">${msg.d} ${msg.t}</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="starred-date">${msg.d} ${msg.t}</span>
+          <button class="starred-del-btn" title="Unstar" onclick="event.stopPropagation(); toggleStar(${id}); renderStarredSheet(); showToast('Message unstarred');">★</button>
+        </div>
       </div>
       <div class="starred-txt">${esc(msg.txt)}</div>
     `;
@@ -1016,9 +1190,10 @@ function buildMessageRow(i, prevMsg) {
 
   const isOut = (msg.s === ME);
   const isTail = (!prevMsg || prevMsg.s !== msg.s || prevMsg.d !== msg.d);
+  const isStarred = starredIds.has(i);
 
   const row = document.createElement('div');
-  row.className = 'msg-row ' + (isOut ? 'out' : 'in') + (isTail ? ' tail' : '');
+  row.className = 'msg-row ' + (isOut ? 'out' : 'in') + (isTail ? ' tail' : '') + (isStarred ? ' starred' : '');
   row.setAttribute('data-idx', i);
 
   let tailSvg = isTail ? (isOut ? TAIL_OUT_SVG : TAIL_IN_SVG) : '';
@@ -1034,14 +1209,13 @@ function buildMessageRow(i, prevMsg) {
   }
 
   const tickHtml = isOut ? BLUE_TICK_SVG : '';
-  const isStarred = starredIds.has(i);
 
   row.innerHTML = `
     ${tailSvg}
     <div class="bubble">
       <span class="msg-text">${contentHtml}</span>
       <span class="msg-meta">
-        <button class="star-btn ${isStarred ? 'starred' : ''}" data-id="${i}" title="Star">★</button>
+        <span class="star-badge">★</span>
         <span class="msg-time">${msg.t}</span>
         ${tickHtml}
       </span>
@@ -1523,16 +1697,9 @@ async function initChat() {
   // Initial load: first 50 messages from start
   renderSlice(0, Math.min(50, messages.length));
 
-  // Event Delegation for Star Buttons
+  // Hold to Star Gesture Listener
   const stream = document.getElementById('chat-stream');
-  stream.addEventListener('click', (e) => {
-    const starBtn = e.target.closest('.star-btn');
-    if (starBtn) {
-      const msgId = parseInt(starBtn.dataset.id);
-      toggleStar(msgId, starBtn);
-      e.stopPropagation();
-    }
-  });
+  setupHoldListener(stream);
 
   // Passive Smooth Scroll Handler
   stream.addEventListener('scroll', () => {
@@ -1557,6 +1724,33 @@ async function initChat() {
       setTimeout(() => { isScrollLoading = false; }, 60);
     }
   }, { passive: true });
+}
+
+// ─── PWA INSTALLATION & SERVICE WORKER ───
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const btn = document.getElementById('menu-btn-install');
+  if (btn) btn.style.display = 'flex';
+});
+
+function installPWA() {
+  closeMenu();
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then(() => {
+      deferredInstallPrompt = null;
+    });
+  } else {
+    showToast('Tap browser menu (⋮ or Share) then "Add to Home Screen"');
+  }
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
 }
 
 document.getElementById('pw-input').focus();
