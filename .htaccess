@@ -1,0 +1,36 @@
+# ----------------------------------------------------------------------
+# InfinityFree & Apache Security Configuration
+# ----------------------------------------------------------------------
+
+# 1. Disable directory browsing
+Options -Indexes
+
+# 2. Set default index file
+DirectoryIndex index.html
+
+# 3. Block access to hidden files and version control
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# 4. Strictly block access to any text, markdown, log or backup files
+<FilesMatch "\.(txt|log|md|bak|backup|old|sql|env|ini|conf)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# 5. Security Headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "no-referrer"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+# 6. Correct MIME types for PWA
+<IfModule mod_mime.c>
+    AddType application/manifest+json .webmanifest
+    AddType image/svg+xml .svg
+</IfModule>
