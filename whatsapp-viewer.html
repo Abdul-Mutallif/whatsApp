@@ -1294,7 +1294,9 @@ function updateScrollButtons() {
   const bTop = document.getElementById('btn-jump-top');
   const bBottom = document.getElementById('btn-jump-bottom');
 
-  const atStart = (streamStart === 0 && stream.scrollTop < 250);
+  const defaultIdx = messages.findIndex(m => m.d === '21/12/22' || m.d === '21/12/2022');
+  const baseStart = (defaultIdx !== -1) ? defaultIdx : 0;
+  const atStart = (streamStart <= baseStart && stream.scrollTop < 250);
   const atEnd = (streamEnd === messages.length && (stream.scrollHeight - stream.scrollTop - stream.clientHeight) < 250);
 
   bTop.style.display = atStart ? 'none' : 'flex';
@@ -1351,7 +1353,9 @@ function triggerFloatingScrollDate() {
 }
 
 function jumpToStart() {
-  renderSlice(0, Math.min(50, messages.length));
+  const defaultIdx = messages.findIndex(m => m.d === '21/12/22' || m.d === '21/12/2022');
+  const target = (defaultIdx !== -1 && streamStart > defaultIdx) ? defaultIdx : 0;
+  renderSlice(target, Math.min(target + 50, messages.length));
   const stream = document.getElementById('chat-stream');
   stream.scrollTop = 0;
   const pill = document.getElementById('floating-scroll-date');
@@ -1506,8 +1510,11 @@ async function initChat() {
   // Make sure floating pill is hidden on load
   document.getElementById('floating-scroll-date').classList.remove('visible');
 
-  // Initial load: first 50 messages from start
-  renderSlice(0, Math.min(50, messages.length));
+  // Initial load: start by default from 21 December, 2022
+  const startIdx = messages.findIndex(m => m.d === '21/12/22' || m.d === '21/12/2022');
+  const initialStart = (startIdx !== -1) ? startIdx : 0;
+  renderSlice(initialStart, Math.min(initialStart + 50, messages.length));
+  document.getElementById('chat-stream').scrollTop = 0;
 
   // Hold to Star Gesture Listener
   const stream = document.getElementById('chat-stream');
