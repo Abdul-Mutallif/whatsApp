@@ -304,6 +304,30 @@
     padding: 6px; border-radius: 50%; cursor: pointer; display: flex;
   }
 
+  /* ─── FLOATING SCROLL DATE PILL (DISAPPEARS AFTER 1 SECOND) ─── */
+  .floating-scroll-date {
+    position: absolute;
+    top: 102px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-6px);
+    background: var(--wa-header);
+    color: var(--wa-text-muted);
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    z-index: 25;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    user-select: none;
+    white-space: nowrap;
+  }
+  .floating-scroll-date.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
   /* ─── CHAT STREAM AREA ─── */
   .chat-stream {
     flex: 1; overflow-y: auto;
@@ -315,15 +339,15 @@
     contain: layout style;
   }
 
-  /* Date Badge */
+  /* Inline Date Badge (Non-sticky: scrolls naturally with messages!) */
   .chat-date-sep {
-    display: flex; justify-content: center; margin: 10px 0 6px;
-    position: sticky; top: 4px; z-index: 1; pointer-events: none;
+    display: flex; justify-content: center; margin: 14px 0 10px;
+    user-select: none;
   }
   .chat-date-sep span {
     background: var(--wa-header); color: var(--wa-text-muted);
-    font-size: 11.5px; padding: 4px 11px; border-radius: 7px;
-    box-shadow: 0 1px 0.5px rgba(0,0,0,0.18); user-select: none; pointer-events: auto;
+    font-size: 11.5px; padding: 5px 12px; border-radius: 7.5px;
+    box-shadow: 0 1px 0.5px rgba(0,0,0,0.18); user-select: none;
   }
 
   /* System Notice */
@@ -459,7 +483,7 @@
   #btn-jump-bottom { bottom: 64px; }
   #btn-jump-top { bottom: 108px; }
 
-  /* ══════════ MOBILE BOTTOM SHEET / MODALS ══════════ */
+  /* ══════════ MOBILE BOTTOM SHEETS ══════════ */
   .sheet-overlay {
     position: absolute; inset: 0;
     background: rgba(0,0,0,0.55);
@@ -664,6 +688,9 @@
       <button class="s-nav-btn" onclick="searchNext()" title="Next"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 9l-7 7-7-7"/></svg></button>
       <button class="s-nav-btn" onclick="toggleSearch()" title="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
     </div>
+
+    <!-- Floating Date Pill that appears during scroll and disappears after 1 second -->
+    <div class="floating-scroll-date" id="floating-scroll-date"></div>
 
     <!-- Chat Messages Stream -->
     <div class="chat-stream" id="chat-stream" onclick="closeMenu()"></div>
@@ -961,10 +988,11 @@ function setSenderFilter(mode) {
   if (mode === 'p') stream.classList.add('filter-only-p');
 }
 
-// ─── FAST WINDOWED VIRTUAL STREAM (ZERO LAG ARCHITECTURE) ───
+// ─── FAST WINDOWED VIRTUAL STREAM ───
 let streamStart = 0;
 let streamEnd = 0;
 let isScrollLoading = false;
+let floatDateHideTimer = null;
 
 const TAIL_IN_SVG = '<svg viewBox="0 0 8 13" class="tail-svg tail-in"><path d="M1.533 3.568L8 12.193V0H2.812C1.042 0 .474 1.256 1.533 3.568z"/></svg>';
 const TAIL_OUT_SVG = '<svg viewBox="0 0 8 13" class="tail-svg tail-out"><path d="M5.188 0H0v12.193l6.467-8.625C7.526 2.156 6.958 0 5.188 0z"/></svg>';
@@ -1089,7 +1117,7 @@ function loadDownChunk() {
   stream.appendChild(frag);
   streamEnd += count;
 
-  // Prune top if DOM has more than 160 elements to stay ultra-lightweight
+  // Prune top if DOM exceeds 180 elements
   if (streamEnd - streamStart > 180) {
     const pruneCount = 40;
     const oldHeight = stream.scrollHeight;
@@ -1164,6 +1192,34 @@ function updateScrollButtons() {
   bBottom.style.display = atEnd ? 'none' : 'flex';
 }
 
+function triggerFloatingScrollDate() {
+  const stream = document.getElementById('chat-stream');
+  const pill = document.getElementById('floating-scroll-date');
+  const streamTop = stream.getBoundingClientRect().top;
+  const rows = stream.querySelectorAll('.msg-row');
+
+  let curDate = '';
+  for (let r of rows) {
+    const rect = r.getBoundingClientRect();
+    if (rect.bottom > streamTop + 10) {
+      const idx = parseInt(r.dataset.idx);
+      if (!isNaN(idx) && messages[idx]) {
+        curDate = formatDisplayDate(messages[idx].d);
+        break;
+      }
+    }
+  }
+
+  if (curDate) {
+    pill.textContent = curDate;
+    pill.classList.add('visible');
+    clearTimeout(floatDateHideTimer);
+    floatDateHideTimer = setTimeout(() => {
+      pill.classList.remove('visible');
+    }, 1000);
+  }
+}
+
 function jumpToStart() {
   renderSlice(0, Math.min(50, messages.length));
   document.getElementById('chat-stream').scrollTop = 0;
@@ -1230,7 +1286,6 @@ function runSearch() {
     return;
   }
 
-  // Ultra-fast in-memory linear search across all 66,000+ messages (runs in ~5ms)
   sResults = [];
   for (let i = 0; i < messages.length; i++) {
     if (!messages[i].sys && messages[i].txt.toLowerCase().includes(q)) {
@@ -1264,7 +1319,7 @@ function searchPrev() {
   focusSearchMatch();
 }
 
-// ─── FAST ASYNC ANALYTICS CALCULATION ───
+// ─── FAST ANALYTICS CALCULATION ───
 let analyticsComputed = false;
 
 function calculateAndRenderAnalytics() {
@@ -1280,7 +1335,6 @@ function calculateAndRenderAnalytics() {
   const dateCounts = {};
   const emojiRegex = /\p{Extended_Pictographic}/gu;
 
-  // Single fast pass
   for (let i = 0; i < messages.length; i++) {
     const m = messages[i];
     if (m.sys) continue;
@@ -1288,7 +1342,6 @@ function calculateAndRenderAnalytics() {
     datesSet.add(m.d);
     dateCounts[m.d] = (dateCounts[m.d] || 0) + 1;
 
-    // Approximate word count (fast whitespace scan)
     const str = m.txt;
     let words = 0;
     for (let c = 0; c < str.length; c++) {
@@ -1306,7 +1359,6 @@ function calculateAndRenderAnalytics() {
       }
     }
 
-    // Time
     const timeMatch = m.t.match(/(\d{1,2})[:.](\d{2})\s*([ap]m)?/i);
     if (timeMatch) {
       let h = parseInt(timeMatch[1]);
@@ -1316,7 +1368,6 @@ function calculateAndRenderAnalytics() {
       if (h >= 0 && h < 24) hours[h]++;
     }
 
-    // Weekday
     const p = m.d.split(/[\/\-\.]/);
     if (p.length === 3) {
       let d = parseInt(p[0]), mo = parseInt(p[1]) - 1, y = parseInt(p[2]);
@@ -1326,7 +1377,6 @@ function calculateAndRenderAnalytics() {
     }
   }
 
-  // Calculate Streak
   let maxStreak = 0, currentStreak = 0, prevTime = null;
   const sortedDates = Array.from(datesSet).map(ds => {
     const p = ds.split(/[\/\-\.]/);
@@ -1357,13 +1407,11 @@ function calculateAndRenderAnalytics() {
   document.getElementById('m-words').textContent = totalWords.toLocaleString();
   document.getElementById('m-media').textContent = totalMedia.toLocaleString();
 
-  // Top emojis
   const topEmojis = Object.entries(emojiCounts).sort((a,b) => b[1] - a[1]).slice(0, 14);
   document.getElementById('m-top-emojis').innerHTML = topEmojis.map(([em, cnt]) => `
     <div class="emoji-pill"><span>${em}</span><span class="emoji-count">${cnt}</span></div>
   `).join('');
 
-  // Hourly bars
   const maxHour = Math.max(...hours, 1);
   let hHtml = '';
   for (let i = 0; i < 24; i += 2) {
@@ -1379,7 +1427,6 @@ function calculateAndRenderAnalytics() {
   }
   document.getElementById('m-hourly-chart').innerHTML = hHtml;
 
-  // Weekday bars
   const maxDay = Math.max(...weekdays, 1);
   let dHtml = '';
   weekdays.forEach((count, i) => {
@@ -1432,7 +1479,6 @@ async function initChat() {
   const text = await inflateData(CHAT_B64);
   parseRaw(text);
 
-  // Setup Info Sheet
   const total = countAbdul + countP;
   const dates = new Set(messages.map(m => m.d));
   document.getElementById('info-total').textContent = total.toLocaleString();
@@ -1443,7 +1489,7 @@ async function initChat() {
   document.getElementById('chip-stat').textContent = total.toLocaleString() + ' msgs';
   updateStarredBadges();
 
-  // Fast virtual window initial load
+  // Initial load: first 50 messages from start
   renderSlice(0, Math.min(50, messages.length));
 
   // Event Delegation for Star Buttons
@@ -1464,17 +1510,16 @@ async function initChat() {
     const ch = stream.clientHeight;
 
     updateScrollButtons();
+    triggerFloatingScrollDate();
 
     if (isScrollLoading) return;
 
-    // Approaching bottom: load more downwards
     if ((sh - st - ch) < 500 && streamEnd < messages.length) {
       isScrollLoading = true;
       loadDownChunk();
       setTimeout(() => { isScrollLoading = false; }, 60);
     }
 
-    // Approaching top: load more upwards
     if (st < 180 && streamStart > 0) {
       isScrollLoading = true;
       loadUpChunk();
